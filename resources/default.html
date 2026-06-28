@@ -99,7 +99,10 @@ curl -X POST http://localhost:8080/navigate \
 
 # Get current URL and console logs
 curl -s http://localhost:8080/status
-curl -s http://localhost:8080/log | tail -10</code></pre>
+curl -s http://localhost:8080/log | tail -10
+
+# Get current page DOM HTML
+curl -s http://localhost:8080/dom | head -20</code></pre>
   </div>
 
   <div class="card">

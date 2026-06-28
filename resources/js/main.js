@@ -13,6 +13,10 @@ const backBtn = document.getElementById('back-btn');
 const forwardBtn = document.getElementById('forward-btn');
 const reloadBtn = document.getElementById('reload-btn');
 const addressInput = document.getElementById('address-bar');
+const loadingSpinner = document.getElementById('loading-spinner');
+
+function showLoading() { loadingSpinner.classList.add('visible'); }
+function hideLoading() { loadingSpinner.classList.remove('visible'); }
 
 let historyStack = [];
 let historyIndex = -1;
@@ -42,6 +46,7 @@ function navigate(url) {
     addressInput.value = url;
     pushHistory(url);
     writeStatus(url);
+    showLoading();
 }
 
 function pushHistory(url) {
@@ -56,6 +61,7 @@ function restoreUrl(url) {
     if (!url || url === 'hob:home') { iframe.src = 'default.html'; addressInput.value = ''; writeStatus('hob:home'); }
     else { iframe.src = PROXY_BASE + encodeURIComponent(url); addressInput.value = url; writeStatus(url); }
     updateButtons();
+    showLoading();
 }
 function reload() { const s = iframe.src; if (s) iframe.src = s; }
 function updateButtons() { backBtn.disabled = historyIndex <= 0; forwardBtn.disabled = historyIndex >= historyStack.length - 1; }
@@ -97,6 +103,10 @@ if (!iframe.src || iframe.src === '' || iframe.src.endsWith('/')) iframe.src = '
 
 iframe.addEventListener('load', function() {
     try { hookConsole(iframe.contentWindow); } catch(e) {}
+    hideLoading();
+});
+iframe.addEventListener('error', function() {
+    hideLoading();
 });
 
 window.addEventListener('message', function(e) {
@@ -137,7 +147,10 @@ async function processLogQueue() {
     logWriting = false;
 }
 
-// ── Exec polling ──
+// ── Exec / DOM polling (postMessage cross-origin) ──
+
+var execIdCounter = 0;
+var pendingDomReqs = {};
 
 async function pollExec() {
     try {
@@ -145,10 +158,10 @@ async function pollExec() {
         if (content && content !== '{}' && content.trim()) {
             var parsed = JSON.parse(content);
             if (parsed.code) {
+                var id = ++execIdCounter;
                 try {
                     if (iframe.contentWindow) {
-                        var result = iframe.contentWindow.eval(parsed.code);
-                        writeLogText('[EXEC] OK: ' + (typeof result === 'object' ? JSON.stringify(result) : String(result)));
+                        iframe.contentWindow.postMessage({type: '__hob_exec__', code: parsed.code, id: id}, '*');
                     }
                 } catch(e) {
                     writeLogText('[EXEC] Error: ' + e.message);
@@ -158,6 +171,33 @@ async function pollExec() {
         }
     } catch(e) {}
 }
+
+async function pollDomReq() {
+    try {
+        var content = await Neutralino.filesystem.readFile('./.tmp/dom_req.json');
+        if (content && content !== '{}' && content.trim()) {
+            var parsed = JSON.parse(content);
+            if (parsed.id && parsed.code && iframe.contentWindow) {
+                pendingDomReqs[parsed.id] = true;
+                iframe.contentWindow.postMessage({type: '__hob_exec__', code: parsed.code, id: parsed.id}, '*');
+            }
+            await Neutralino.filesystem.writeFile('./.tmp/dom_req.json', '{}');
+        }
+    } catch(e) {}
+}
+
+window.addEventListener('message', function(e) {
+    var d = e.data;
+    if (d && d.type === '__hob_result__') {
+        var text = d.error ? '[EXEC] Error: ' + d.error : '[EXEC] OK: ' + d.result;
+        writeLogText(text);
+        if (d.id && pendingDomReqs[d.id]) {
+            delete pendingDomReqs[d.id];
+            var respFile = './.tmp/dom_resp.' + d.id + '.json';
+            Neutralino.filesystem.writeFile(respFile, JSON.stringify({result: d.result, error: d.error}));
+        }
+    }
+});
 
 // ── Navigate polling ──
 
@@ -176,3 +216,4 @@ async function pollNav() {
 
 setInterval(pollExec, POLL_INTERVAL);
 setInterval(pollNav, POLL_INTERVAL);
+setInterval(pollDomReq, POLL_INTERVAL);

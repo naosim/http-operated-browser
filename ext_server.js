@@ -6,6 +6,7 @@ const urlMod = require('url');
 const EXEC_FILE = './.tmp/exec.json';
 const NAV_FILE = './.tmp/nav.json';
 const STATUS_FILE = './.tmp/status.json';
+const DOM_REQ_FILE = './.tmp/dom_req.json';
 
 const INJECTED_SCRIPT = `
 (function(){
@@ -224,6 +225,33 @@ const server = http.createServer((req, res) => {
         } catch (err) {
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ url: 'hob:home', timestamp: new Date().toISOString() }));
+        }
+    } else if (req.method === 'GET' && req.url === '/dom') {
+        const id = Date.now() + '-' + Math.random().toString(36).slice(2, 10);
+        const respFile = './.tmp/dom_resp.' + id + '.json';
+        try {
+            fs.writeFileSync(DOM_REQ_FILE, JSON.stringify({ id, code: 'document.documentElement.outerHTML' }));
+            for (let i = 0; i < 60; i++) {
+                try {
+                    const content = fs.readFileSync(respFile, 'utf-8');
+                    fs.unlinkSync(respFile);
+                    const data = JSON.parse(content);
+                    if (data.error) {
+                        res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
+                        res.end('DOM Error: ' + data.error);
+                    } else {
+                        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+                        res.end(data.result);
+                    }
+                    return;
+                } catch(e) {}
+                Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 100);
+            }
+            res.writeHead(504, { 'Content-Type': 'text/plain; charset=utf-8' });
+            res.end('Timeout waiting for DOM (3s)');
+        } catch (err) {
+            res.writeHead(500, { 'Content-Type': 'text/plain' });
+            res.end('DOM request error: ' + err.message);
         }
     } else if (req.method === 'POST' && req.url === '/log') {
         let body = '';

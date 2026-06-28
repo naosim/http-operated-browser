@@ -63,6 +63,22 @@
             width: 100%;
             border: none;
         }
+        #loading-spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid #ccc;
+            border-top-color: #4a90d9;
+            border-radius: 50%;
+            animation: spin .8s linear infinite;
+            flex-shrink: 0;
+            display: none;
+        }
+        #loading-spinner.visible {
+            display: inline-block;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -70,6 +86,7 @@
         <button id="back-btn" disabled title="Back">&#9664;</button>
         <button id="forward-btn" disabled title="Forward">&#9654;</button>
         <button id="reload-btn" title="Reload">&#8635;</button>
+        <span id="loading-spinner" title="Loading..."></span>
         <input id="address-bar" type="text" placeholder="Enter URL and press Enter">
     </div>
     <iframe id="browser-frame" src="default.html"></iframe>

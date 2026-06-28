@@ -53,6 +53,12 @@ curl -s http://localhost:8080/log | tail -5
 curl -s http://localhost:8080/status
 ```
 
+### Get the page DOM
+
+```bash
+curl -s http://localhost:8080/dom | head -20
+```
+
 ## Typical AI loop
 
 ```bash
@@ -72,6 +78,9 @@ sleep 1
 
 # 3. 結果を取得
 curl -s http://localhost:8080/log | tail -5
+
+# 4. ページのDOMを取得
+curl -s http://localhost:8080/dom | head -20
 ```
 
 ## Troubleshooting
