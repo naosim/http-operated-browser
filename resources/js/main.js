@@ -99,6 +99,22 @@ iframe.addEventListener('load', function() {
     try { hookConsole(iframe.contentWindow); } catch(e) {}
 });
 
+window.addEventListener('message', function(e) {
+    var d = e.data;
+    if (d && d.type === '__hob_navigate__' && d.url) {
+        navigate(d.url);
+    } else if (d && d.type === '__hob_close__') {
+        goBack();
+    } else if (d && d.type === '__hob_url__' && d.url) {
+        var cleanUrl = d.url.replace(/^http:\/\/localhost:\d+\/proxy\?url=/, '');
+        if (cleanUrl !== d.url) {
+            try { cleanUrl = decodeURIComponent(cleanUrl); } catch(e) {}
+        }
+        addressInput.value = cleanUrl;
+        writeStatus(cleanUrl);
+    }
+});
+
 // ── Log writing (readFile + writeFile, NOT appendFile) ──
 
 var logQueue = [];
