@@ -51,8 +51,10 @@ function navigate(url) {
 
 function pushHistory(url) {
     historyStack = historyStack.slice(0, historyIndex + 1);
-    historyStack.push(url);
-    historyIndex = historyStack.length - 1;
+    if (historyStack[historyStack.length - 1] !== url) {
+        historyStack.push(url);
+        historyIndex = historyStack.length - 1;
+    }
     updateButtons();
 }
 function goBack() { if (historyIndex > 0) { historyIndex--; restoreUrl(historyStack[historyIndex]); } }

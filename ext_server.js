@@ -33,47 +33,32 @@ const INJECTED_SCRIPT = `
   function notifyUrl(u){
     window.parent.postMessage({type:'__hob_url__',url:u},'*');
   }
-  var PB=window.location.origin+'/proxy?url=';
-  function extractRealUrl(href){
-    if(href.indexOf(PB)===0){
-      try{return decodeURIComponent(href.substring(PB.length));}catch(e){}
-    }
-    return href;
-  }
-  function proxyfyLinks(root){
-    var links=root.querySelectorAll('a[href]');
-    for(var i=0;i<links.length;i++){
-      var a=links[i];
-      var h=a.getAttribute('href');
-      if(!h)continue;
-      if(h.indexOf('/proxy?url=')===0||h.indexOf(PB)===0)continue;
-      if(h.indexOf('javascript:')===0||h.indexOf('#')===0||h.indexOf('about:')===0)continue;
-      a.href=PB+encodeURIComponent(a.href);
-    }
-  }
-  proxyfyLinks(document);
-  if(window.MutationObserver){
-    new MutationObserver(function(m){
-      for(var i=0;i<m.length;i++){
-        for(var j=0;j<m[i].addedNodes.length;j++){
-          var n=m[i].addedNodes[j];
-          if(n.querySelectorAll)proxyfyLinks(n);
+
+  ['click','mousedown','pointerdown'].forEach(function(ev){
+    window.addEventListener(ev,function(e){
+      for(var el=e.target;el;el=el.parentElement){
+        if(el.tagName==='A'&&el.href&&el.href.indexOf('javascript:')!==0){
+          if(!el._hobBusy){
+            el._hobBusy=true;
+            setTimeout(function(){el._hobBusy=false;},300);
+            window.parent.postMessage({type:'__hob_navigate__',url:el.href},'*');
+          }
+          e.preventDefault();
+          return;
         }
       }
-    }).observe(document,{childList:true,subtree:true});
-  }
-  document.addEventListener('click',function(e){
-    for(var el=e.target;el;el=el.parentElement){
-      if(el.tagName==='A'&&el.href&&el.href.indexOf('javascript:')!==0){
-        e.preventDefault();
-        window.parent.postMessage({type:'__hob_navigate__',url:extractRealUrl(el.href)},'*');
-        return;
-      }
-    }
-  },true);
+    },true);
+  });
   try{
     var _loc=window.location;
     Object.defineProperty(window,'location',{
+      get:function(){return _loc;},
+      set:function(v){window.parent.postMessage({type:'__hob_navigate__',url:''+v},'*');},
+      configurable:true
+    });
+  }catch(e){}
+  try{
+    Object.defineProperty(document,'location',{
       get:function(){return _loc;},
       set:function(v){window.parent.postMessage({type:'__hob_navigate__',url:''+v},'*');},
       configurable:true
@@ -87,6 +72,16 @@ const INJECTED_SCRIPT = `
     if(typeof _locP.replace==='function'){
       Location.prototype.replace=function(u){window.parent.postMessage({type:'__hob_navigate__',url:''+u},'*');};
     }
+    try{
+      var _hrefDesc=Object.getOwnPropertyDescriptor(_locP,'href');
+      if(_hrefDesc&&_hrefDesc.set){
+        Object.defineProperty(_locP,'href',{
+          set:function(v){window.parent.postMessage({type:'__hob_navigate__',url:''+v},'*');},
+          get:function(){return _loc.toString();},
+          configurable:true
+        });
+      }
+    }catch(e){}
   }catch(e){}
   var _open=window.open;
   window.open=function(url){

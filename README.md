@@ -4,6 +4,16 @@
 
 Neutralinojs ベースの軽量ブラウザ。HTTP API 経由で外部の AI エージェントやスクリプトが iframe 内で任意の JavaScript を実行でき、コンソール出力をファイルにキャプチャします。
 
+## Design Philosophy
+
+HOB は **テスト用途** を目的としており、プロキシを通して iframe に表示するページに対して以下の最小限の変更のみを行います。
+
+- `<base>` タグの挿入（相対パスの解決を正しくするため）
+- ブリッジスクリプトの挿入（API 制御・コンソール取得・ナビゲーションインターセプトに必要）
+- X-Frame-Options / CSP の除去（iframe 表示のために必要）
+
+元の HTML の構造・スタイル・スクリプトの動作には原則手を加えません。SPA 特有の複雑なナビゲーション処理や高度なイベント制御には対応しきれない場合があります。
+
 ## Architecture
 
 ```
@@ -197,17 +207,20 @@ curl -X POST http://localhost:8080/navigate \
 sleep 1
 curl -s http://localhost:8080/status
 
-# 3. JavaScript を実行
+# 3. ページのDOMを取得（画面の状態を読む）
+curl -s http://localhost:8080/dom | head -40
+
+# 4. DOMの内容から操作を判断し、JavaScript を実行
 curl -X POST http://localhost:8080/exec \
   -H "Content-Type: application/json" \
-  -d '{"code": "document.title"}'
+  -d '{"code": "document.querySelector('"'"'button'"'"').click()"}'
 
-# 4. 実行結果をログから取得
+# 5. 実行結果や console.log の出力をログから取得
 sleep 1
-curl -s http://localhost:8080/log | tail -5
+curl -s http://localhost:8080/log | tail -10
 
-# 5. ページのDOMを取得
-curl -s http://localhost:8080/dom | head -20
+# 6. 必要に応じて再びDOMを取得して結果を確認
+curl -s http://localhost:8080/dom | head -40
 ```
 
 全操作が curl だけで完結し、ブラウザの GUI を直接操作する必要はありません。
