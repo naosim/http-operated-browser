@@ -1,5 +1,7 @@
 # HTTP Operated Browser (HOB)
 
+> **初めての方は [GETTING_STARTED.md](GETTING_STARTED.md) をご覧ください。**
+
 Neutralinojs ベースの軽量ブラウザ。HTTP API 経由で外部の AI エージェントやスクリプトが iframe 内で任意の JavaScript を実行でき、コンソール出力をファイルにキャプチャします。
 
 ## Architecture
