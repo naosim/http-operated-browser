@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>HTTP Operated Browser (HOB)</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+        body, html {
+            margin: 0; padding: 0; height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            overflow: hidden;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+        }
+        #toolbar {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 8px;
+            background: #e9ecef;
+            border-bottom: 1px solid #ccc;
+            flex-shrink: 0;
+            height: 42px;
+        }
+        #toolbar button {
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            padding: 4px 10px;
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
+            color: #333;
+            height: 30px;
+        }
+        #toolbar button:hover:not(:disabled) {
+            background: #d0d4d8;
+            border-color: #bbb;
+        }
+        #toolbar button:disabled {
+            opacity: 0.35;
+            cursor: default;
+        }
+        #address-bar {
+            flex: 1;
+            height: 30px;
+            padding: 0 10px;
+            border: 1px solid #adb5bd;
+            border-radius: 4px;
+            font-size: 13px;
+            outline: none;
+            background: #fff;
+            color: #333;
+        }
+        #address-bar:focus {
+            border-color: #4a90d9;
+            box-shadow: 0 0 0 2px rgba(74,144,217,.25);
+        }
+        #browser-frame {
+            flex: 1;
+            width: 100%;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="toolbar">
+        <button id="back-btn" disabled title="Back">&#9664;</button>
+        <button id="forward-btn" disabled title="Forward">&#9654;</button>
+        <button id="reload-btn" title="Reload">&#8635;</button>
+        <input id="address-bar" type="text" placeholder="Enter URL and press Enter">
+    </div>
+    <iframe id="browser-frame" src="default.html"></iframe>
+    <script src="js/neutralino.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

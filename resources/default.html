@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>HOB - Home</title>
+<style>
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  margin: 0;
+  padding: 40px 20px;
+  background: #f5f5f5;
+  color: #333;
+  display: flex;
+  justify-content: center;
+}
+.container {
+  max-width: 680px;
+  width: 100%;
+}
+h1 {
+  font-size: 28px;
+  margin: 0 0 8px;
+  color: #1a1a1a;
+}
+.subtitle {
+  color: #666;
+  font-size: 15px;
+  margin: 0 0 32px;
+}
+.card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.1);
+}
+.card h2 {
+  font-size: 18px;
+  margin: 0 0 12px;
+  color: #1a1a1a;
+}
+.card p, .card li {
+  font-size: 14px;
+  line-height: 1.7;
+  color: #444;
+  margin: 0 0 8px;
+}
+.card ul {
+  margin: 0;
+  padding-left: 20px;
+}
+.card li { margin-bottom: 4px; }
+code {
+  background: #f0f0f0;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 13px;
+  color: #d63384;
+}
+.status-ok {
+  display: inline-block;
+  background: #d4edda;
+  color: #155724;
+  padding: 2px 10px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>HTTP Operated Browser</h1>
+  <p class="subtitle">HOB &mdash; External AI / script controllable browser</p>
+
+  <div class="card">
+    <h2>What is HOB?</h2>
+    <p>
+      HOB is a lightweight custom browser built on Neutralinojs.
+      It provides an HTTP API (<code>POST /exec</code>) that allows external AI agents
+      or scripts to execute arbitrary JavaScript inside the browser iframe,
+      and captures all console output to a local log file.
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>Quick Start</h2>
+    <p>Enter a URL in the address bar above and press Enter to navigate.</p>
+    <p>From an external terminal, control the browser via HTTP API (port 8080 by default, configurable via <code>HOB_PORT</code> env var):</p>
+    <pre><code># Execute JavaScript
+curl -X POST http://localhost:8080/exec \
+  -H "Content-Type: application/json" \
+  -d '{"code": "document.title"}'
+
+# Navigate to a URL (updates the iframe display)
+curl -X POST http://localhost:8080/navigate \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://example.com"}'
+
+# Get current URL and console logs
+curl -s http://localhost:8080/status
+curl -s http://localhost:8080/log | tail -10</code></pre>
+  </div>
+
+  <div class="card">
+    <h2>Status</h2>
+    <p><span class="status-ok">&#9679; HTTP Server (default 8080, configurable via HOB_PORT): Running</span></p>
+    <p><span class="status-ok">&#9679; Neutralino Backend: Connected</span></p>
+  </div>
+</div>
+</body>
+</html>
