@@ -18,7 +18,9 @@ async function startBrowser() {
         defaultViewport: null,
     });
 
+    const pages = await browser.pages();
     page = await browser.newPage();
+    for (const p of pages) try { await p.close(); } catch (e) {}
 
     page.on('console', msg => {
         consoleLogs.push({
