@@ -1,8 +1,8 @@
 {
-  "devDependencies": {
-    "@neutralinojs/neu": "^11.7.2"
+  "dependencies": {
+    "puppeteer": "^25.2.1"
   },
   "scripts": {
-    "dev": "neu run"
+    "dev": "node puppeteer_browser.js"
   }
 }
